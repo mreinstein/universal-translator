@@ -1,0 +1,202 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+  <meta name="description" content="Mike Reinstein">
+  <meta name="author" content="Mike Reinstein">
+
+  <title>Universal Translator</title>
+
+  
+  <meta name="theme-color" content="#ffffff">
+
+  <style>
+    * {
+      font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+      font-weight: 300;
+    }
+
+    body {
+      max-width: 800px;
+      background-color: #333;
+      color: white;
+    }
+    
+    #messages {
+      overflow-x: scroll;
+    }
+
+    .message {
+      padding-bottom: 9px;
+    }
+
+    #chat-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 1fr 80px;
+      padding: 10px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    textarea {
+      padding: 4px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    select {
+      position: fixed;
+      right: 10px;
+      top: 10px;
+      z-index: 1;
+      font-size: 14px;
+    }
+
+    textarea, select {
+      background-color: #222;
+      color: white;
+      border: 1px solid #555;
+    }
+
+    @media only screen and (min-width: 860px) {
+      body {
+        margin: 1em auto;
+      }
+    }
+
+  </style>
+
+  <noscript>
+    <style>* { color: black; }</style>
+  </noscript>
+
+</head>
+<body>
+
+<select>
+  <option value="en">en</option>
+  <option value="es">es</option>
+  <option value="fr">fr</option>
+</select>
+
+<div id="chat-container">
+  <div id="messages"></div>
+  <textarea placeholder="Chat" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+</div>
+
+<script>
+  const textarea = document.querySelector('textarea')
+
+  async function submit (text, srcLanguage, uname) {
+    return fetch('/chat', {
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+      mode: 'cors', // no-cors, cors, *same-origin
+      cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+      credentials: 'same-origin', // include, same-origin, *omit
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8'
+      },
+      redirect: 'follow', // manual, *follow, error
+      referrer: 'no-referrer', // no-referrer, *client
+      body: JSON.stringify({
+        text,
+        srcLanguage,
+        uname
+      }) // body data type must match "Content-Type" header
+    })
+  }
+
+
+  function renderMessages (messages, lang) {
+    const msgContainer = document.querySelector('#messages')
+    const msgEls = msgContainer.querySelectorAll('div')
+
+    messages.forEach((d, idx) => {
+      const m = msgEls[idx] || document.createElement('div')
+      m.classList.add('message')
+      m.textContent = `${d.uname} [${d.detectedSourceLanguage}]: ${d.texts[lang]}`
+      m.setAttribute('title', `Original Text: ${d.originalText}`)
+      if (!msgEls[idx])
+        msgContainer.appendChild(m)
+    })
+  }
+
+
+  async function main () {
+    // check that we're logged in
+    let uname = localStorage.getItem('uname')
+    while (!uname) {
+      uname = prompt('please choose a username:')
+      localStorage.setItem('uname', uname)
+    }
+
+    let lang = localStorage.getItem('lang')
+    while (lang !== 'en' && lang !== 'fr' && lang !== 'es') {
+      lang = prompt('please choose a language. (type en or es or fr):')
+      if (lang)
+        lang = lang.toLowerCase()
+    }
+    localStorage.setItem('lang', lang)
+
+    const select = document.querySelector('select')
+    select.value = lang
+    select.onchange = function (ev) {
+      lang = select.value
+      localStorage.setItem('lang', lang)
+      renderMessages(messages, lang)
+    }
+
+    const messages = [ ]
+
+    textarea.onkeypress = function (ev) {
+      if (ev.key === 'Enter') {
+        const text = textarea.value.trim()
+
+        if (text.length > 256) {
+          alert('please be kind, send less text for now.')
+          return
+        }
+    
+        submit(text, lang, uname)
+        setTimeout(() => textarea.value = '')
+      }
+    }
+
+    const msgContainer = document.querySelector('#messages')
+
+    const connection = new EventSource(`/poll`, { withCredentials: true })
+    connection.addEventListener('chat', function (e) {
+      const data = JSON.parse(e.data)
+      let last
+
+      for (const d of data) {
+        messages.push(d)
+        const m = document.createElement('div')
+        m.classList.add('message')
+        m.textContent = `${d.uname} [${d.detectedSourceLanguage}]: ${d.texts[lang]}`
+        m.setAttribute('title', `Original Text: ${d.originalText}`)
+        msgContainer.appendChild(m)
+        last = m
+      }
+
+      if (last)
+        last.scrollIntoView()
+    })
+  }
+
+
+  main()
+
+  
+</script>
+
+</body>
+</html>
