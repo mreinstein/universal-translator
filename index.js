@@ -15,6 +15,11 @@ import { wrap as safeHandler } from 'async-middleware'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
+	console.error('Fatal Error:  GOOGLE_TRANSLATE_API_KEY environment variable is undefined')
+	process.exit(1)
+}
+
 const PORT = 5000
 
 const app = express()
