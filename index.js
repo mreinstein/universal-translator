@@ -5,11 +5,15 @@ import delay        from 'delay'
 import express      from 'express'
 import helmet       from 'helmet'
 import path         from 'path'
-import { wrap as safeHandler } from 'async-middleware'
 import serveStatic  from 'serve-static'
 import session      from 'express-session'
 import translate    from './translate.js'
+import { dirname }  from 'path'
+import { fileURLToPath } from 'url'
+import { wrap as safeHandler } from 'async-middleware'
 
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const PORT = 5000
 

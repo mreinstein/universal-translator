@@ -2,7 +2,8 @@
   "name": "ut",
   "version": "1.0.0",
   "description": "",
-  "private": false,
+  "private": true,
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "build": "echo \"OK\"",
@@ -18,7 +19,7 @@
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "delay": "^5.0.0",
-    "dotenv": "^10.0.0",
+    "dotenv": "^16.0.0",
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "express-session": "^1.17.1",

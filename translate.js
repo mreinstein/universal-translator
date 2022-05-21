@@ -1,5 +1,8 @@
+import  GoogleTranslate from 'google-translate'
+
+
 const options = { }
-const googleTranslate = require('google-translate')(process.env.GOOGLE_TRANSLATE_API_KEY, options)
+const googleTranslate = GoogleTranslate(process.env.GOOGLE_TRANSLATE_API_KEY, options)
 
 
 export default async function translate ({ text, srcLang, targetLang }) {
